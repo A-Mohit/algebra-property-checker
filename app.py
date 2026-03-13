@@ -39,23 +39,30 @@ def extract_operations(expr):
 
 def show_steps(expr,x,y,z):
 
-    ops = extract_operations(expr)
-
     steps=[]
 
-    for op,args in ops:
+    while "theta(" in expr or "phi(" in expr:
 
-        a,b = [v.strip() for v in args.split(",")]
+        match=re.search(r'(theta|phi)\(([^()]+)\)',expr)
 
-        va = {"x":x,"y":y,"z":z}.get(a,a)
-        vb = {"x":x,"y":y,"z":z}.get(b,b)
+        if not match:
+            break
+
+        op,args = match.groups()
+        a,b=[v.strip() for v in args.split(",")]
+
+        va={"x":x,"y":y,"z":z}.get(a,a)
+        vb={"x":x,"y":y,"z":z}.get(b,b)
 
         if op=="theta":
-            res = theta_func(va,vb)
+            res=theta_func(va,vb)
         else:
-            res = phi_func(va,vb)
+            res=phi_func(va,vb)
 
-        steps.append(f"{op}({va},{vb}) = {res}")
+        step=f"{op}({va},{vb}) = {res}"
+        steps.append(step)
+
+        expr=expr.replace(match.group(0),str(res),1)
 
     return steps
 
@@ -209,4 +216,5 @@ if elements:
 
         st.markdown("---")
         st.caption("Developed by Mohit Adhikari 🚀")
+
 
