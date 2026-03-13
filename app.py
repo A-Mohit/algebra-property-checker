@@ -70,11 +70,19 @@ if elements:
 
     st.subheader("θ (Theta) Operation Table")
 
-    theta_df = st.data_editor(pd.DataFrame("",index=L,columns=L))
+    theta_df = st.data_editor(
+        pd.DataFrame("", index=L, columns=L),
+        key="theta_table"
+    )
+
 
     st.subheader("φ (Phi) Operation Table")
 
-    phi_df = st.data_editor(pd.DataFrame("",index=L,columns=L))
+    phi_df = st.data_editor(
+        pd.DataFrame("", index=L, columns=L),
+        key="phi_table"
+    )
+
 
     # -----------------------------
     # Add Custom Theorem
@@ -201,3 +209,4 @@ if elements:
 
         st.markdown("---")
         st.caption("Developed by Mohit Adhikari 🚀")
+
