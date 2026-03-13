@@ -37,35 +37,39 @@ def extract_operations(expr):
     pattern = r'(theta|phi)\(([^()]+)\)'
     return re.findall(pattern, expr)
 
-def show_steps(expr,x,y,z):
+def show_steps(expr, x, y, z):
 
-    steps=[]
+    steps = []
 
-    while "theta(" in expr or "phi(" in expr:
+    # Replace variables with values
+    expr = expr.replace("x", str(x)).replace("y", str(y)).replace("z", str(z))
 
-        match=re.search(r'(theta|phi)\(([^()]+)\)',expr)
+    # Convert operations
+    expr = expr.replace("theta", "θ").replace("phi", "φ")
+
+    while True:
+
+        match = re.search(r'(θ|φ)\(([^(),]+),([^(),]+)\)', expr)
 
         if not match:
             break
 
-        op,args = match.groups()
-        a,b=[v.strip() for v in args.split(",")]
+        op = match.group(1)
+        a = match.group(2).strip()
+        b = match.group(3).strip()
 
-        va={"x":x,"y":y,"z":z}.get(a,a)
-        vb={"x":x,"y":y,"z":z}.get(b,b)
-
-        if op=="theta":
-            res=theta_func(va,vb)
+        if op == "θ":
+            result = theta_func(a, b)
+            step = f"θ({a},{b}) = {result}"
         else:
-            res=phi_func(va,vb)
+            result = phi_func(a, b)
+            step = f"φ({a},{b}) = {result}"
 
-        step=f"{op}({va},{vb}) = {res}"
         steps.append(step)
 
-        expr=expr.replace(match.group(0),str(res),1)
+        expr = expr.replace(match.group(0), str(result), 1)
 
     return steps
-
 # -----------------------------
 # Input Set
 # -----------------------------
@@ -216,5 +220,6 @@ if elements:
 
         st.markdown("---")
         st.caption("Developed by Mohit Adhikari 🚀")
+
 
 
