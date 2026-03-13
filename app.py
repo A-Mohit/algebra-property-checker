@@ -202,11 +202,13 @@ if elements:
                     st.latex(f"{lhs_val} \\neq {rhs_val}")
 
                     failed = True
-                    break
+                    
 
                 else:
 
                     st.success("✅ Holds for this combination")
 
-            if not failed:
+            if failed:
+                st.warning("⚠ Property does NOT hold for all combinations")
+            else:
                 st.success("✔ Property Verified for all combinations")
