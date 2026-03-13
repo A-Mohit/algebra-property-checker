@@ -117,6 +117,45 @@ if elements:
 
     selected_theorems = [th for th in ALL_THEOREMS if th["name"] in selected_names]
 
+# helper functions
+import re
+
+def replace_expr(expr):
+    expr = expr.replace("theta", "theta_func")
+    expr = expr.replace("phi", "phi_func")
+    return expr
+
+def extract_ops(expr):
+    pattern = r'(theta|phi)\(([^()]+)\)'
+    return re.findall(pattern, expr)
+
+def show_steps(expr, x=None, y=None, z=None):
+    steps = []
+    ops = extract_ops(expr)
+
+    for op,args in ops:
+        args = args.split(',')
+        values = []
+
+        for a in args:
+            a=a.strip()
+            if a=='x':
+                values.append(x)
+            elif a=='y':
+                values.append(y)
+            elif a=='z':
+                values.append(z)
+            else:
+                values.append(a)
+
+        if op=='theta':
+            res = theta_func(values[0],values[1])
+            steps.append(f"{op}({values[0]},{values[1]}) = {res}")
+        else:
+            res = phi_func(values[0],values[1])
+            steps.append(f"{op}({values[0]},{values[1]}) = {res}")
+
+    return steps
     # -----------------------------
     # Verification
     # -----------------------------
@@ -142,49 +181,56 @@ if elements:
 
         st.markdown("## 📊 Results")
 
-        for th in selected_theorems:
+for th in selected_theorems:
 
-            st.markdown("---")
-            st.subheader(f"🧾 {th['name']}")
-            st.latex(f"{th['lhs']} = {th['rhs']}")
+    st.markdown("---")
+    st.subheader(f"🧾 {th['name']}")
+    st.latex(f"{th['lhs']} = {th['rhs']}")
 
-            failed = False
+    failed = False
 
-            if th["vars"] == 1:
-                for x in L:
-                    lhs_val = evaluate(th["lhs"], x)
-                    rhs_val = evaluate(th["rhs"], x)
-                    if lhs_val != rhs_val:
-                        st.error(f"Failed at x={x}")
-                        st.latex(f"LHS = {lhs_val}, RHS = {rhs_val}")
-                        failed = True
-                        break
+    if th["vars"] == 2:
+        combos = itertools.product(L,L)
+    elif th["vars"] == 3:
+        combos = itertools.product(L,L,L)
+    else:
+        combos = [(x,) for x in L]
 
-            elif th["vars"] == 2:
-                for x,y in itertools.product(L,L):
-                    lhs_val = evaluate(th["lhs"], x,y)
-                    rhs_val = evaluate(th["rhs"], x,y)
-                    if lhs_val != rhs_val:
-                        st.error(f"Failed at x={x}, y={y}")
-                        st.latex(f"LHS = {lhs_val}, RHS = {rhs_val}")
-                        failed = True
-                        break
+    for combo in combos:
 
-            elif th["vars"] == 3:
-                for x,y,z in itertools.product(L,L,L):
-                    lhs_val = evaluate(th["lhs"], x,y,z)
-                    rhs_val = evaluate(th["rhs"], x,y,z)
-                    if lhs_val != rhs_val:
-                        st.error(f"Failed at x={x}, y={y}, z={z}")
-                        st.latex(f"LHS = {lhs_val}, RHS = {rhs_val}")
-                        failed = True
-                        break
+        if len(combo)==1:
+            x=combo[0]; y=None; z=None
+        elif len(combo)==2:
+            x,y=combo; z=None
+        else:
+            x,y,z=combo
 
-            if not failed:
-                st.success("✅ Verified")
+        lhs_val = eval(replace_expr(th["lhs"]))
+        rhs_val = eval(replace_expr(th["rhs"]))
 
-        st.markdown("---")
-        st.markdown("Developed by Mohit Adhikari 🚀")
+        if lhs_val != rhs_val:
+
+            st.error(f"❌ Failed at x={x}, y={y}, z={z}")
+
+            st.write("### Step-by-Step Solution")
+
+            st.write("**LHS Steps**")
+            for step in show_steps(th["lhs"],x,y,z):
+                st.latex(step)
+
+            st.write("**RHS Steps**")
+            for step in show_steps(th["rhs"],x,y,z):
+                st.latex(step)
+
+            st.latex(f"LHS = {lhs_val}")
+            st.latex(f"RHS = {rhs_val}")
+            st.latex(f"{lhs_val} \\neq {rhs_val}")
+
+            failed = True
+            break
+
+    if not failed:
+        st.success("✅ Verified")
 
 # import streamlit as st
 # import pandas as pd
@@ -289,3 +335,4 @@ if elements:
 #         check_property("Property 4", prop4)
 
 #         check_property("Property 5", prop5)
+
